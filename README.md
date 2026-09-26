@@ -1,73 +1,67 @@
-# Investment Platform
+# Investment Platform API
 
-A Ruby on Rails API application for tracking and assessing investment
-opportunities. This repository contains the domain models, persistence layer,
-and test suite for the backend service.
+A resilient backend service for evaluating investment portfolios, tracking asset valuations, and processing market transactions. Built as an API-only service emphasizing deterministic state transitions and strict data integrity.
+
+## Architecture & Design Decisions
+
+* **Data Integrity via PostgreSQL:** Uses `db/structure.sql` to leverage native PostgreSQL constraints, transactional advisory locks for balance reconciliation, and composite indexing on time-series valuations.
+* **Idempotency & Concurrency:** Financial transactions implement idempotency keys via request headers to prevent double-charging or race conditions during network retries.
+* **Background Processing:** Long-running valuation simulations and external API polling run asynchronously off the main request thread.
 
 ## Tech Stack
 
-- **Ruby** 4.0.6
-- **Rails** (edge)
-- **PostgreSQL** as the primary datastore
-- **Puma** as the application server
-- **RSpec** for testing
-- **Docker** for containerized builds
+* **Runtime:** Ruby 4.0.x (YJIT enabled)
+* **Framework:** Rails (API mode, edge)
+* **Database:** PostgreSQL 16+
+* **Application Server:** Puma (multi-threaded, cluster mode)
+* **Testing:** RSpec, FactoryBot
+* **Infrastructure:** Docker (multi-stage build)
 
-## Requirements
+## Prerequisites
 
-- Ruby 4.0.6 (see `.ruby-version`)
-- PostgreSQL 9.3+
-- Bundler
+* Docker & Docker Compose **or** Ruby 4.0+ and PostgreSQL 16+
+* Bundler
 
-## Getting Started
+## Local Setup
 
-Install dependencies:
+1. **Install dependencies:**
+   ```bash
+   bundle install
 
-```bash
-bundle install
+## Prepare the database:
+Database connection settings live in config/database.yml. Sensitive values are managed via Rails encrypted credentials. The schema is tracked in db/structure.sql.
+
 ```
-
-Set up the database (create, load schema, run migrations):
-
-```bash
 bin/rails db:prepare
 ```
 
-Start the server:
+## Start the application server:
 
-```bash
+```
 bin/rails server
 ```
 
-## Configuration
-
-Database connection settings live in `config/database.yml`. Sensitive values are
-managed via Rails encrypted credentials and environment variables — never commit
-secrets to the repository.
-
-The schema is tracked in `db/structure.sql`. Apply pending migrations with:
-
-```bash
-bin/rails db:migrate
-```
-
 ## Running Tests
+Execute the automated test suite:
 
-```bash
+```
 bundle exec rspec
 ```
 
 ## Docker
+Build and run the containerized application:
 
-Build and run the application using the provided `Dockerfile`:
-
-```bash
+```
 docker build -t investment_platform .
+docker run -p 3000:3000 investment_platform
 ```
 
 ## Project Layout
 
-- `app/models` — domain models and business rules
-- `db/` — schema and migrations
-- `spec/` — RSpec test suite
-- `config/` — application and environment configuration
+app/models — Domain models, state machines, and business rules
+
+db/ — PostgreSQL migrations and structure.sql
+
+spec/ — RSpec unit and integration test suite
+
+config/ — Application runtime and environment configuration
